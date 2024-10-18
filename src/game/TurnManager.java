@@ -55,9 +55,16 @@ public class TurnManager {
                 break;
             }
 
-            // Display the player's hand and the current market
-            thisPlayer.sendMessage("It's your turn! Your hand is:\n" + thisPlayer.displayHand());
-            thisPlayer.sendMessage("The market is:\n" + printMarket());
+            // Display the market and hand for both server and client
+            if (thisPlayer.getId() == 0) {
+                // Player 0 (server) sees the market directly
+                System.out.println("The market is:\n" + printMarket());
+                System.out.println("It's your turn! Your hand is:\n" + thisPlayer.displayHand());
+            } else {
+                // Client player sees the market via sendMessage
+                thisPlayer.sendMessage("The market is:\n" + printMarket());
+                thisPlayer.sendMessage("It's your turn! Your hand is:\n" + thisPlayer.displayHand());
+            }
 
             // Process player action
             if (!thisPlayer.isBot()) {
@@ -65,9 +72,11 @@ public class TurnManager {
             } else {
                 handleBotTurn(thisPlayer);
             }
-
+            System.out.println("Starting player: " + currentPlayer);
             // Move to the next player
             currentPlayer = (currentPlayer + 1) % players.size();
+            System.out.println("Starting player: " + currentPlayer);
+
         }
 
         // Once the game ends, calculate and display final scores
@@ -75,8 +84,12 @@ public class TurnManager {
     }
 
     private void handlePlayerTurn(Player player) throws IOException, ClassNotFoundException {
+        System.out.println("Handling turn for Player " + player.getId());
         player.sendMessage("Choose a pile to take a card from (number) or two veggie cards (A-F):");
+        System.out.println("Waiting for input from Player " + player.getId());
+
         String action = player.receiveInput();
+        System.out.println("Player " + player.getId() + " input received: " + action);
 
         // Check if the action is valid
         if (action == null || action.isEmpty()) {
@@ -126,6 +139,7 @@ public class TurnManager {
     }
 
     private void handleBotTurn(Player bot) throws IOException {
+        System.out.println("Handling bot turn for Player " + bot.getId());
         // Bot randomly selects a point or veggie card
         if (Math.random() > 0.5) {
             // Bot takes a point card
@@ -154,7 +168,7 @@ public class TurnManager {
 
     // Old Market
 
-    private String printMarket() {
+    public String printMarket() {
         StringBuilder pileString = new StringBuilder();
 
         // Format for Point Cards

@@ -58,8 +58,12 @@ public class Player {
     // In Player.java
     public String receiveInput() throws IOException, ClassNotFoundException {
         if (isBot()) {
-            // Simulate bot action
             return performBotAction();
+        } else if (connectionSocket == null && id == 0) {
+            // For the server player (Player 0), use console input or other method
+            System.out.println("Server, it's your turn. Type your action:");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            return reader.readLine();
         } else if (inFromClient != null) {
             // Receive input from the client
             return (String) inFromClient.readObject();
