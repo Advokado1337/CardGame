@@ -6,6 +6,7 @@ import network.GameServer;
 import game.TurnManager;
 import pile.Pile;
 import player.Player;
+import card.Card;
 
 import java.util.ArrayList;
 
@@ -48,10 +49,7 @@ public class PointSalad {
 
     // Setup piles for the game
     private static ArrayList<Pile> setupPiles(int numberOfPlayers) {
-        ArrayList<Pile> piles = new ArrayList<>();
-        Pile pile = new Pile(new ArrayList<>(), piles); // Initialize a new pile
-        pile.setPiles(numberOfPlayers); // Call the method that populates the piles
-        piles.add(pile);
+        ArrayList<Pile> piles = new ArrayList<>(Pile.createPiles(numberOfPlayers)); // Call the new method
         System.out.println("Piles setup:");
         for (int i = 0; i < piles.size(); i++) {
             System.out.println("Pile " + i + ": " + piles.get(i).toString());

@@ -3,6 +3,8 @@ package pile;
 import card.Card;
 import card.CardFactory;
 import card.PointSaladCard;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,102 +13,47 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 public class Pile {
     public List<Card> cards = new ArrayList<>();
     public Card[] veggieCards = new Card[2]; // Two visible veggie cards
-    private List<Pile> piles; // Reference to all piles //TODO this is a bad idea
 
-    // Constructor using CardFactory
-    public Pile(List<Card> cards, List<Pile> allPiles) {
+    // Constructor only focuses on its own cards
+    public Pile(List<Card> cards) {
         this.cards = cards;
-        this.piles = allPiles;
-
-        // Check if there are enough cards to assign to veggieCards
         if (cards.size() >= 2) {
             this.veggieCards[0] = cards.remove(0);
             this.veggieCards[1] = cards.remove(0);
-            this.veggieCards[0].flipCard(); // Flip to veggie side
-            this.veggieCards[1].flipCard(); // Flip to veggie side
+            this.veggieCards[0].flipCard();
+            this.veggieCards[1].flipCard();
         } else {
             System.out.println("Not enough cards to assign to veggie cards");
         }
     }
 
-    // Get point card (first card in the pile) or pull from other piles if empty
+    // Get point card (first card in the pile)
     public Card getPointCard() {
-        if (cards.isEmpty()) {
-            // remove from the bottom of the biggest of the other piles
-            int biggestPileIndex = 0;
-            int biggestSize = 0;
-            for (int i = 0; i < piles.size(); i++) {
-                if (i != piles.indexOf(this) && piles.get(i).cards.size() > biggestSize) {
-                    biggestSize = piles.get(i).cards.size();
-                    biggestPileIndex = i;
-                }
-            }
-            if (biggestSize > 1) {
-                cards.add(piles.get(biggestPileIndex).cards.remove(piles.get(biggestPileIndex).cards.size() - 1));
-            } else {
-                return null; // No more cards available
-            }
-        }
-        return cards.get(0); // Return the first card as the point card
+        return cards.isEmpty() ? null : cards.get(0);
     }
 
-    // Buy point card (removes first card) or pull from other piles if empty
+    // Buy point card
     public Card buyPointCard() {
-        if (cards.isEmpty()) {
-            // remove from the bottom of the biggest of the other piles
-            int biggestPileIndex = 0;
-            int biggestSize = 0;
-            for (int i = 0; i < piles.size(); i++) {
-                if (i != piles.indexOf(this) && piles.get(i).cards.size() > biggestSize) {
-                    biggestSize = piles.get(i).cards.size();
-                    biggestPileIndex = i;
-                }
-            }
-            if (biggestSize > 1) {
-                cards.add(piles.get(biggestPileIndex).cards.remove(piles.get(biggestPileIndex).cards.size() - 1));
-            } else {
-                return null; // No more cards available
-            }
-        }
-        return cards.remove(0); // Remove and return the first card (point card)
+        return cards.isEmpty() ? null : cards.remove(0);
     }
 
-    // Get veggie card at specified index
+    // Get veggie card at a specified index
     public Card getVeggieCard(int index) {
         return veggieCards[index];
     }
 
-    // Buy veggie card (remove it and replace with a new one from the pile)
+    // Buy veggie card and replace it
     public Card buyVeggieCard(int index) {
         Card boughtCard = veggieCards[index];
-        if (cards.size() <= 1) {
-            // Remove from the bottom of the biggest of the other piles
-            int biggestPileIndex = 0;
-            int biggestSize = 0;
-            for (int i = 0; i < piles.size(); i++) {
-                if (i != piles.indexOf(this) && piles.get(i).cards.size() > biggestSize) {
-                    biggestSize = piles.get(i).cards.size();
-                    biggestPileIndex = i;
-                }
-            }
-            if (biggestSize > 1) {
-                cards.add(piles.get(biggestPileIndex).cards.remove(piles.get(biggestPileIndex).cards.size() - 1));
-                veggieCards[index] = cards.remove(0);
-                veggieCards[index].flipCard(); // Ensure the new veggie card is flipped
-            } else {
-                veggieCards[index] = null; // No more veggie cards available
-            }
-        } else {
+        if (!cards.isEmpty()) {
             veggieCards[index] = cards.remove(0);
-            veggieCards[index].flipCard(); // Ensure the new veggie card is flipped
+            veggieCards[index].flipCard();
+        } else {
+            veggieCards[index] = null; // No more veggie cards available
         }
-
         return boughtCard;
     }
 
@@ -115,8 +62,8 @@ public class Pile {
         return cards.isEmpty() && veggieCards[0] == null && veggieCards[1] == null;
     }
 
-    // Method to set the piles using JSON file
-    public void setPiles(int nrPlayers) {
+    // Static method to handle deck creation based on the number of players
+    public static List<Pile> createPiles(int nrPlayers) {
         ArrayList<Card> deckPepper = new ArrayList<>();
         ArrayList<Card> deckLettuce = new ArrayList<>();
         ArrayList<Card> deckCarrot = new ArrayList<>();
@@ -202,14 +149,16 @@ public class Pile {
             }
         }
 
-        // Create the piles and add them to the list
-        piles.add(new Pile(pile1, piles));
-        piles.add(new Pile(pile2, piles));
-        piles.add(new Pile(pile3, piles));
+        // Return the piles
+        List<Pile> piles = new ArrayList<>();
+        piles.add(new Pile(pile1));
+        piles.add(new Pile(pile2));
+        piles.add(new Pile(pile3));
+        return piles;
     }
 
     // Shuffle deck helper method
-    private void shuffleDeck(ArrayList<Card> deck) {
+    private static void shuffleDeck(ArrayList<Card> deck) {
         for (int i = 0; i < deck.size(); i++) {
             int randomIndex = (int) (Math.random() * deck.size());
             Card temp = deck.get(i);

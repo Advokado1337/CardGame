@@ -4,16 +4,42 @@ import player.Player;
 import pile.Pile;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 public class TurnManager {
     private ArrayList<Player> players;
-    private ArrayList<Pile> piles; // Use piles directly instead of Market
+    private List<Pile> piles; // Use piles directly instead of Market
     private int currentPlayer;
 
     public TurnManager(ArrayList<Player> players, ArrayList<Pile> piles) {
         this.players = players;
         this.piles = piles; // Use piles directly
         this.currentPlayer = 0; // Start with player 0
+    }
+
+    // Find the biggest pile (move this logic from Pile)
+    public Pile getBiggestPileExcluding(Pile excludePile) {
+        int biggestSize = 0;
+        Pile biggestPile = null;
+
+        for (Pile pile : piles) {
+            if (pile != excludePile && pile.cards.size() > biggestSize) {
+                biggestSize = pile.cards.size();
+                biggestPile = pile;
+            }
+        }
+        return biggestPile;
+    }
+
+    // Handle the redistribution of cards (used in buyPointCard in Pile previously)
+    public void redistributeCard(Pile emptyPile) {
+        Pile biggestPile = getBiggestPileExcluding(emptyPile);
+
+        if (biggestPile != null && biggestPile.cards.size() > 1) {
+            emptyPile.cards.add(biggestPile.cards.remove(biggestPile.cards.size() - 1));
+        } else {
+            System.out.println("No more cards available for redistribution.");
+        }
     }
 
     public void startTurns() throws IOException, ClassNotFoundException {
@@ -127,46 +153,36 @@ public class TurnManager {
     }
 
     // Old Market
-    private String printMarket() {
-        StringBuilder marketString = new StringBuilder();
-        String formatCard = "%-20s"; // Adjusting the width for cleaner output
 
-        // Point cards
-        marketString.append("Point Cards:\n");
-        for (int i = 0; i < piles.size(); i++) {
-            if (piles.get(i).getPointCard() == null) {
-                marketString.append(String.format("[%d] ", i))
-                        .append(String.format(formatCard, "Empty"))
-                        .append("\t");
+    private String printMarket() {
+        StringBuilder pileString = new StringBuilder();
+
+        // Format for Point Cards
+        pileString.append("Point Cards:\t");
+        for (int p = 0; p < piles.size(); p++) {
+            if (piles.get(p).getPointCard() == null) {
+                pileString.append(String.format("[%d]%-43s\t", p, "Empty"));
             } else {
-                marketString.append(String.format("[%d] ", i))
-                        .append(String.format(formatCard, piles.get(i).getPointCard()))
-                        .append("\t");
+                pileString.append(String.format("[%d]%-43s\t", p, piles.get(p).getPointCard().toString()));
             }
         }
 
-        // Veggie cards - First Row (A-C)
-        marketString.append("\nVeggie Cards:\n");
+        pileString.append("\nVeggie Cards:\t");
         char veggieCardIndex = 'A';
-        for (int i = 0; i < piles.size(); i++) {
-            marketString.append(String.format("[%c] ", veggieCardIndex))
-                    .append(String.format(formatCard,
-                            piles.get(i).getVeggieCard(0) != null ? piles.get(i).getVeggieCard(0).toString() : "Empty"))
-                    .append("\t");
+        for (Pile pile : piles) {
+            pileString.append(String.format("[%c]%-43s\t", veggieCardIndex,
+                    pile.getVeggieCard(0) != null ? pile.getVeggieCard(0).toString() : "Empty"));
             veggieCardIndex++;
         }
 
-        // Veggie cards - Second Row (D-F)
-        marketString.append("\n");
-        for (int i = 0; i < piles.size(); i++) {
-            marketString.append(String.format("[%c] ", veggieCardIndex))
-                    .append(String.format(formatCard,
-                            piles.get(i).getVeggieCard(1) != null ? piles.get(i).getVeggieCard(1).toString() : "Empty"))
-                    .append("\t");
+        pileString.append("\n\t\t");
+        for (Pile pile : piles) {
+            pileString.append(String.format("[%c]%-43s\t", veggieCardIndex,
+                    pile.getVeggieCard(1) != null ? pile.getVeggieCard(1).toString() : "Empty"));
             veggieCardIndex++;
         }
 
-        return marketString.toString();
+        return pileString.toString();
     }
 
 }
