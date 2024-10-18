@@ -44,7 +44,12 @@ public class TurnManager {
 
     public void startTurns() throws IOException, ClassNotFoundException {
         boolean keepPlaying = true;
-
+        // Client player sees the market via sendMessage
+        for (Player player : players) {
+            player.sendMessage("The market is:\n" + printMarket());
+            player.sendMessage("It's your turn! Your hand is:\n" +
+                    player.displayHand());
+        }
         while (keepPlaying) {
             Player thisPlayer = players.get(currentPlayer);
 
@@ -59,11 +64,13 @@ public class TurnManager {
             if (thisPlayer.getId() == 0) {
                 // Player 0 (server) sees the market directly
                 System.out.println("The market is:\n" + printMarket());
-                System.out.println("It's your turn! Your hand is:\n" + thisPlayer.displayHand());
+                System.out.println("It's your turn! Your hand is:\n" +
+                        thisPlayer.displayHand());
             } else {
                 // Client player sees the market via sendMessage
                 thisPlayer.sendMessage("The market is:\n" + printMarket());
-                thisPlayer.sendMessage("It's your turn! Your hand is:\n" + thisPlayer.displayHand());
+                thisPlayer.sendMessage("It's your turn! Your hand is:\n" +
+                        thisPlayer.displayHand());
             }
 
             // Process player action
