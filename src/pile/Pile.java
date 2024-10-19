@@ -99,13 +99,6 @@ public class Pile {
                         criteriaObj.getString("TOMATO"), PointSaladCard.Vegetable.TOMATO));
             }
 
-            System.out.println("Pepper deck size: " + deckPepper.size());
-            System.out.println("Lettuce deck size: " + deckLettuce.size());
-            System.out.println("Carrot deck size: " + deckCarrot.size());
-            System.out.println("Cabbage deck size: " + deckCabbage.size());
-            System.out.println("Onion deck size: " + deckOnion.size());
-            System.out.println("Tomato deck size: " + deckTomato.size());
-
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,6 +113,8 @@ public class Pile {
 
         // Calculate how many cards to assign per veggie type based on the number of
         // players
+        // Each player gets 6 cards of each veggie type
+
         int cardsPerVeggie = nrPlayers / 2 * 6;
 
         ArrayList<Card> deck = new ArrayList<>();
@@ -133,6 +128,12 @@ public class Pile {
         }
 
         System.out.println("Main deck size after shuffling: " + deck.size());
+        System.out.println("Pepper deck size: " + deckPepper.size());
+        System.out.println("Lettuce deck size: " + deckLettuce.size());
+        System.out.println("Carrot deck size: " + deckCarrot.size());
+        System.out.println("Cabbage deck size: " + deckCabbage.size());
+        System.out.println("Onion deck size: " + deckOnion.size());
+        System.out.println("Tomato deck size: " + deckTomato.size());
 
         // Shuffle the combined deck and divide it into 3 piles
         shuffleDeck(deck);

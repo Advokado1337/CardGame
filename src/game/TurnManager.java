@@ -92,60 +92,91 @@ public class TurnManager {
 
     private void handlePlayerTurn(Player player) throws IOException, ClassNotFoundException {
         System.out.println("Handling turn for Player " + player.getId());
-        player.sendMessage("Choose a pile to take a card from (number) or two veggie cards (A-F):");
-        System.out.println("Waiting for input from Player " + player.getId());
+        player.sendMessage("Choose a pile to take a card from (number) or one/two veggie cards (A-F):");
 
-        String action = player.receiveInput();
-        System.out.println("Player " + player.getId() + " input received: " + action);
+        boolean validInput = false;
 
-        // Check if the action is valid
-        if (action == null || action.isEmpty()) {
-            player.sendMessage("No input received. Please provide a valid action.");
-            return;
-        }
+        while (!validInput) {
+            String action = player.receiveInput();
+            System.out.println("Player " + player.getId() + " input received: " + action);
 
-        System.out.println("Player " + player.getId() + " action: " + action);
-
-        // Handling point card action (numeric input)
-        if (action.matches("\\d")) {
-            int pileIndex = Integer.parseInt(action);
-            if (pileIndex < piles.size() && !piles.get(pileIndex).isEmpty()) {
-                player.addCardToHand(piles.get(pileIndex).buyPointCard());
-                player.sendMessage("You took a point card from pile " + pileIndex);
-            } else {
-                player.sendMessage("Pile is empty or invalid pile selected.");
+            // Check if action is valid
+            if (action == null || action.isEmpty()) {
+                player.sendMessage("No input received. Please provide a valid action.");
+                continue; // Re-prompt for input
             }
-        } else {
-            // Handling veggie card action (A-F input)
-            takeVeggieCards(player, action);
+
+            // If the action is a number (pile index for point card)
+            if (action.matches("\\d")) {
+                int pileIndex = Integer.parseInt(action);
+                if (pileIndex < piles.size() && !piles.get(pileIndex).isEmpty()) {
+                    player.addCardToHand(piles.get(pileIndex).buyPointCard());
+                    player.sendMessage("You took a point card from pile " + pileIndex);
+                    validInput = true;
+                } else {
+                    player.sendMessage("Invalid pile or pile is empty. Try again.");
+                }
+            } else {
+                // Handle 1 or 2 veggie card selection (A-F)
+                if (action.length() == 1 || action.length() == 2) {
+                    takeVeggieCards(player, action);
+                    validInput = true;
+                } else {
+                    player.sendMessage("Invalid selection. You can only choose one or two veggie cards.");
+                }
+            }
         }
     }
 
     private void takeVeggieCards(Player player, String action) throws IOException {
         int takenVeggies = 0;
 
-        for (char c : action.toCharArray()) {
-            int pileIndex = Character.toUpperCase(c) - 'A'; // Convert A-F to pile index
+        for (int charIndex = 0; charIndex < action.length(); charIndex++) {
+            char c = action.charAt(charIndex);
+            int pileIndex;
 
-            if (pileIndex < 0 || pileIndex >= piles.size()) {
-                player.sendMessage("Invalid pile selected. Try again.");
-                continue;
+            // Map A and D to pile 0, B and E to pile 1, C and F to pile 2
+            switch (Character.toUpperCase(c)) {
+                case 'A':
+                case 'D':
+                    pileIndex = 0;
+                    break;
+                case 'B':
+                case 'E':
+                    pileIndex = 1;
+                    break;
+                case 'C':
+                case 'F':
+                    pileIndex = 2;
+                    break;
+                default:
+                    player.sendMessage("Invalid pile selected. Please choose a valid pile (A-F).");
+                    System.out.println("Invalid pile selected: " + c); // Debugging
+                    return; // Re-prompt the player
             }
 
-            if (piles.get(pileIndex).getVeggieCard(0) != null && takenVeggies < 2) {
-                player.addCardToHand(piles.get(pileIndex).buyVeggieCard(0));
+            System.out.println("Selected pile index: " + pileIndex); // Debugging
+
+            // Calculate the veggie index (A-C map to row 1, D-F to row 2)
+            int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1; // Row 1 or Row 2
+            System.out.println("Selected veggie index: " + veggieIndex); // Debugging
+
+            Pile selectedPile = piles.get(pileIndex); // Correctly map to the pile
+            System.out.println("Selected pile: " + selectedPile); // Debugging
+
+            if (selectedPile.getVeggieCard(veggieIndex) != null && takenVeggies < 2) {
+                System.out.println("Veggie card available in pile: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+                player.addCardToHand(selectedPile.buyVeggieCard(veggieIndex));
                 takenVeggies++;
-            } else {
-                player.sendMessage("Pile or veggie card is empty.");
-            }
-
-            if (takenVeggies == 2) {
-                break; // Player can take a maximum of 2 veggie cards
+            } else { // Pile is empty or no more veggie cards
+                player.sendMessage("The selected pile or veggie card is empty. Try again.");
+                System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+                return; // Re-prompt the player
             }
         }
     }
 
-    private void handleBotTurn(Player bot) throws IOException {
+    private void handleBotTurn(Player bot) throws IOException, ClassNotFoundException {
         System.out.println("Handling bot turn for Player " + bot.getId());
         // Bot randomly selects a point or veggie card
         if (Math.random() > 0.5) {
