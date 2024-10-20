@@ -10,6 +10,9 @@ import java.util.Scanner;
 
 import card.Card;
 
+// TODO: Bug req 10 , null issue with piles when 1 card left in pile and try to draw 2 veggie cards one gets placed and null error on second card.
+// TODO: Bug req 11, draw from botton not working
+
 public class TurnManager {
     private ArrayList<Player> players;
     private List<Pile> piles; // Use piles directly instead of Market
@@ -73,11 +76,23 @@ public class TurnManager {
                 System.out.println("The market is:\n" + printMarket());
                 System.out.println("It's your turn! Your hand is:\n" +
                         thisPlayer.displayHand());
+                // show other players hands
+                for (Player player : players) {
+                    if (player.getId() != 0) {
+                        System.out.println(player.displayHand());
+                    }
+                }
             } else {
                 // Client player sees the market via sendMessage
                 thisPlayer.sendMessage("The market is:\n" + printMarket());
                 thisPlayer.sendMessage("It's your turn! Your hand is:\n" +
                         thisPlayer.displayHand());
+                // show other players hands
+                for (Player player : players) {
+                    if (player.getId() != thisPlayer.getId()) {
+                        thisPlayer.sendMessage(player.displayHand());
+                    }
+                }
             }
 
             // Process player action
@@ -124,6 +139,7 @@ public class TurnManager {
                     player.addCardToHand(piles.get(pileIndex).buyPointCard());
                     player.sendMessage("You took a point card from pile " + pileIndex);
                     validInput = true;
+
                 } else {
                     player.sendMessage("Invalid pile or pile is empty. Try again.");
                 }
@@ -137,9 +153,15 @@ public class TurnManager {
             }
         }
     }
-    // TODO: Implement flipping criteria cards to veggie side Req 8
 
     private void promptFlipCard(Player player) throws IOException, ClassNotFoundException {
+
+        List<Card> pointCards = new ArrayList<>();
+        for (Card card : player.getHand()) {
+            if (card.isCriteriaSideUp()) {
+                pointCards.add(card);
+            }
+        }
 
         // Check if the player has any criteria cards in hand
         boolean hasCriteriaCard = false;
@@ -163,14 +185,16 @@ public class TurnManager {
 
             if (response.equals("yes")) {
                 System.out.println("Your hand is:\n" + player.displayHand());
+                for (int i = 0; i < pointCards.size(); i++) {
+                    System.out.println("[" + i + "] " + pointCards.get(i));
+                }
                 System.out.println("Enter the index of the card you want to flip:");
                 int cardIndex = scanner.nextInt();
                 scanner.nextLine(); // Consume the newline
 
                 if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
-                    Card card = player.getHand().get(cardIndex);
-                    card.flipCard();
-                    System.out.println("Card flipped: " + card);
+                    pointCards.get(cardIndex).flipCard();
+                    System.out.println("Card flipped: " + pointCards.get(cardIndex));
                 } else {
                     System.out.println("Invalid card index.");
                 }
@@ -183,6 +207,9 @@ public class TurnManager {
 
             if (response.equals("yes")) {
                 player.sendMessage("Your hand is:\n" + player.displayHand());
+                for (int i = 0; i < pointCards.size(); i++) {
+                    player.sendMessage("[" + i + "] " + pointCards.get(i));
+                }
                 player.sendMessage("Enter the index of the card you want to flip:");
                 String cardIndexStr = player.receiveInput().trim();
                 int cardIndex = Integer.parseInt(cardIndexStr);
@@ -191,10 +218,8 @@ public class TurnManager {
                                                                                 // received
 
                 if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
-                    Card card = player.getHand().get(cardIndex);
-                    card.flipCard();
-                    player.sendMessage("Card flipped: " + card);
-                    System.out.println("Card flipped: " + card); // Debugging - Ensure card is flipped
+                    pointCards.get(cardIndex).flipCard();
+                    player.sendMessage("Card flipped: " + pointCards.get(cardIndex));
 
                     // Notify all players about the flip
                     for (Player p : players) {
