@@ -25,13 +25,31 @@ public class GameClient {
 
             // If the server is asking for an action, prompt the player and send the input
             // back
+            // First action
             if (serverMessage.contains("Choose a pile")) {
                 System.out.print("Enter your action (pile number or veggie card letters): ");
                 String playerAction = scanner.nextLine();
 
                 // Send the player action back to the server
                 outToServer.writeObject(playerAction);
+
+                // Second action
+            } else if (serverMessage.contains("Do you want to flip a criteria card")) {
+                System.out.print("Enter your action (flip): ");
+                String playerAction = scanner.nextLine();
+
+                // Send the player action back to the server
+                outToServer.writeObject(playerAction);
+            } else if (serverMessage.contains("Enter the index")) {
+                System.out.print("Enter the index (index): ");
+                String playerAction = scanner.nextLine();
+
+                // Send the player action back to the server
+                outToServer.writeObject(playerAction);
+            } else if (serverMessage.contains("end")) {
+                break;
             }
+
         }
     }
 }

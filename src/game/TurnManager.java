@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Scanner;
 
 import card.Card;
 
@@ -85,6 +86,12 @@ public class TurnManager {
             } else {
                 handleBotTurn(thisPlayer);
             }
+
+            // Prompt the player to flip a card
+            if (!thisPlayer.isBot()) {
+                promptFlipCard(thisPlayer);
+            }
+
             System.out.println("Starting player: " + currentPlayer);
             // Move to the next player
             currentPlayer = (currentPlayer + 1) % players.size();
@@ -129,37 +136,80 @@ public class TurnManager {
                 }
             }
         }
-        // TODO: Implement flipping criteria cards to veggie side Req 8
-        // // Now check if the player has any criteria cards to flip to veggie side
-        // boolean criteriaCardInHand = false;
-        // for (Object obj : player.getHand()) {
-        // Card card = (Card) obj;
-        // if (card.isCriteriaSideUp()) {
-        // criteriaCardInHand = true;
-        // break;
-        // }
-        // }
+    }
+    // TODO: Implement flipping criteria cards to veggie side Req 8
 
-        // if (criteriaCardInHand) {
-        // player.sendMessage("Would you like to flip a criteria card to its veggie
-        // side? (y/n)");
-        // String flipChoice = player.receiveInput();
-        // if (flipChoice.equalsIgnoreCase("y")) {
-        // player.sendMessage("Enter the index of the card you'd like to flip (0, 1,
-        // ...):");
-        // String cardIndexInput = player.receiveInput();
-        // if (cardIndexInput.matches("\\d+")) {
-        // int cardIndex = Integer.parseInt(cardIndexInput);
-        // if (cardIndex < player.getHand().size() &&
-        // player.getHand().get(cardIndex).isCriteriaSideUp()) {
-        // player.getHand().get(cardIndex).flipCard(); // Flip the card to veggie side
-        // player.sendMessage("Card flipped to veggie side.");
-        // } else {
-        // player.sendMessage("Invalid card index. No card was flipped.");
-        // }
-        // }
-        // }
-        // }
+    private void promptFlipCard(Player player) throws IOException, ClassNotFoundException {
+
+        // Check if the player has any criteria cards in hand
+        boolean hasCriteriaCard = false;
+        for (Card card : player.getHand()) {
+            if (card.isCriteriaSideUp()) {
+                hasCriteriaCard = true;
+                break;
+            }
+        }
+
+        if (!hasCriteriaCard) {
+            player.sendMessage("You have no criteria cards to flip.");
+            return;
+        }
+
+        if (player.getId() == 0) {
+            // Server player
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Do you want to flip a criteria card to its veggie side? (yes/no)");
+            String response = scanner.nextLine().trim().toLowerCase();
+
+            if (response.equals("yes")) {
+                System.out.println("Your hand is:\n" + player.displayHand());
+                System.out.println("Enter the index of the card you want to flip:");
+                int cardIndex = scanner.nextInt();
+                scanner.nextLine(); // Consume the newline
+
+                if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
+                    Card card = player.getHand().get(cardIndex);
+                    card.flipCard();
+                    System.out.println("Card flipped: " + card);
+                } else {
+                    System.out.println("Invalid card index.");
+                }
+            }
+        } else {
+            player.sendMessage("Do you want to flip a criteria card to its veggie side? (yes/no)");
+            String response = player.receiveInput().trim().toLowerCase();
+
+            System.out.println("Client responded: " + response); // Debugging - Ensure input is received
+
+            if (response.equals("yes")) {
+                player.sendMessage("Your hand is:\n" + player.displayHand());
+                player.sendMessage("Enter the index of the card you want to flip:");
+                String cardIndexStr = player.receiveInput().trim();
+                int cardIndex = Integer.parseInt(cardIndexStr);
+
+                System.out.println("Client chose card index: " + cardIndexStr); // Debugging - Ensure card index is
+                                                                                // received
+
+                if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
+                    Card card = player.getHand().get(cardIndex);
+                    card.flipCard();
+                    player.sendMessage("Card flipped: " + card);
+                    System.out.println("Card flipped: " + card); // Debugging - Ensure card is flipped
+
+                    // Notify all players about the flip
+                    for (Player p : players) {
+                        if (p.getId() != player.getId()) {
+                            p.sendMessage("Player " + player.getId() + " has flipped card " + cardIndex
+                                    + " to its veggie side.");
+                        }
+                    }
+                } else {
+                    player.sendMessage("Invalid card index.");
+                }
+            } else {
+                player.sendMessage("You chose not to flip a card.");
+            }
+        }
     }
 
     private void takeVeggieCards(Player player, String action) throws IOException {
