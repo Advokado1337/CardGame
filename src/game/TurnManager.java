@@ -10,9 +10,6 @@ import java.util.Scanner;
 
 import card.Card;
 
-// TODO: Bug req 10 , null issue with piles when 1 card left in pile and try to draw 2 veggie cards one gets placed and null error on second card.
-// TODO: Bug req 11, draw from botton not working
-
 public class TurnManager {
     private ArrayList<Player> players;
     private List<Pile> piles; // Use piles directly instead of Market
@@ -41,14 +38,37 @@ public class TurnManager {
         return biggestPile;
     }
 
-    // Handle the redistribution of cards (used in buyPointCard in Pile previously)
-    public void redistributeCard(Pile emptyPile) {
+    public void redistributeVeggieCards(Pile emptyPile, int veggieIndex) {
         Pile biggestPile = getBiggestPileExcluding(emptyPile);
+        // > 0 to handle last card in pile for redistribution
+        if (biggestPile != null && biggestPile.cards.size() > 0) {
+            // Logging which pile and from where the card is coming
+            System.out.println("Before redistribution: Biggest Pile Size = " + biggestPile.cards.size());
+            System.out.println("Taking card from the bottom of Pile " + piles.indexOf(biggestPile) + ": "
+                    + biggestPile.cards.get(biggestPile.cards.size() - 1));
 
-        if (biggestPile != null && biggestPile.cards.size() > 1) {
-            emptyPile.cards.add(biggestPile.cards.remove(biggestPile.cards.size() - 1));
+            // Draw the card from the bottom of the biggest pile for the veggie slot
+            emptyPile.veggieCards[veggieIndex] = biggestPile.cards.remove(biggestPile.cards.size() - 1);
+            emptyPile.veggieCards[veggieIndex].flipCard(); // Make sure it’s flipped to veggie side
+
+            // Log redistribution action
+            System.out.println(
+                    "Redistributed a veggie card to Pile " + piles.indexOf(emptyPile) + " at slot " + veggieIndex);
+            System.out.println("After redistribution: Biggest Pile Size = " + biggestPile.cards.size());
         } else {
-            System.out.println("No more cards available for redistribution.");
+            System.out.println("No more veggie cards available for redistribution.");
+        }
+    }
+
+    // This method ensures the market is filled before every player's turn
+    private void checkAndRefillMarket() {
+        for (Pile pile : piles) {
+            // Check each veggie slot (index 0 and 1) and refill if empty
+            for (int veggieIndex = 0; veggieIndex < pile.veggieCards.length; veggieIndex++) {
+                if (pile.getVeggieCard(veggieIndex) == null) {
+                    redistributeVeggieCards(pile, veggieIndex);
+                }
+            }
         }
     }
 
@@ -69,7 +89,7 @@ public class TurnManager {
                 keepPlaying = false;
                 break;
             }
-
+            checkAndRefillMarket();
             // Display the market and hand for both server and client
             if (thisPlayer.getId() == 0) {
                 // Player 0 (server) sees the market directly
@@ -136,6 +156,10 @@ public class TurnManager {
             if (action.matches("\\d")) {
                 int pileIndex = Integer.parseInt(action);
                 if (pileIndex < piles.size() && !piles.get(pileIndex).isEmpty()) {
+                    if (piles.get(pileIndex).getPointCard() == null) {
+                        player.sendMessage("Pile is empty. Try again.");
+                        continue;
+                    }
                     player.addCardToHand(piles.get(pileIndex).buyPointCard());
                     player.sendMessage("You took a point card from pile " + pileIndex);
                     validInput = true;
@@ -292,8 +316,11 @@ public class TurnManager {
             // Bot takes a point card
             for (int i = 0; i < piles.size(); i++) {
                 if (!piles.get(i).isEmpty()) {
-                    bot.addCardToHand(piles.get(i).buyPointCard());
-                    break;
+                    Card pointCard = piles.get(i).buyPointCard();
+                    if (pointCard != null) {
+                        bot.addCardToHand(pointCard);
+                        break;
+                    }
                 }
             }
         } else {

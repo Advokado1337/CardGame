@@ -3,6 +3,7 @@ package game;
 import card.Card;
 import java.util.List;
 
+// TODO : Req 13
 public class PointSaladScoring implements Scoring {
 
     @Override

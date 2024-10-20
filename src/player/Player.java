@@ -84,6 +84,11 @@ public class Player {
         StringBuilder handDisplay = new StringBuilder();
         handDisplay.append("Player " + id + "'s hand:\n");
         for (Card card : hand) {
+            // handle null
+            if (card == null) {
+                handDisplay.append("null\n");
+                continue;
+            }
             handDisplay.append(card.toString()).append("\n"); // Assuming the Card class has a toString method
         }
         return handDisplay.toString();
