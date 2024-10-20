@@ -4,7 +4,10 @@ import player.Player;
 import pile.Pile;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import card.Card;
 
 public class TurnManager {
     private ArrayList<Player> players;
@@ -15,6 +18,9 @@ public class TurnManager {
         this.players = players;
         this.piles = piles; // Use piles directly
         this.currentPlayer = 0; // Start with player 0
+
+        Collections.shuffle(this.players);
+        System.out.println("Players shuffled. Random start player is Player " + this.players.get(0).getId());
     }
 
     // Find the biggest pile (move this logic from Pile)
@@ -47,8 +53,8 @@ public class TurnManager {
         // Client player sees the market via sendMessage
         for (Player player : players) {
             player.sendMessage("The market is:\n" + printMarket());
-            player.sendMessage("It's your turn! Your hand is:\n" +
-                    player.displayHand());
+            // player.sendMessage("It's your turn! Your hand is:\n" +
+            // player.displayHand());
         }
         while (keepPlaying) {
             Player thisPlayer = players.get(currentPlayer);
@@ -100,13 +106,11 @@ public class TurnManager {
             String action = player.receiveInput();
             System.out.println("Player " + player.getId() + " input received: " + action);
 
-            // Check if action is valid
             if (action == null || action.isEmpty()) {
                 player.sendMessage("No input received. Please provide a valid action.");
-                continue; // Re-prompt for input
+                continue;
             }
 
-            // If the action is a number (pile index for point card)
             if (action.matches("\\d")) {
                 int pileIndex = Integer.parseInt(action);
                 if (pileIndex < piles.size() && !piles.get(pileIndex).isEmpty()) {
@@ -117,7 +121,6 @@ public class TurnManager {
                     player.sendMessage("Invalid pile or pile is empty. Try again.");
                 }
             } else {
-                // Handle 1 or 2 veggie card selection (A-F)
                 if (action.length() == 1 || action.length() == 2) {
                     takeVeggieCards(player, action);
                     validInput = true;
@@ -126,6 +129,37 @@ public class TurnManager {
                 }
             }
         }
+        // TODO: Implement flipping criteria cards to veggie side Req 8
+        // // Now check if the player has any criteria cards to flip to veggie side
+        // boolean criteriaCardInHand = false;
+        // for (Object obj : player.getHand()) {
+        // Card card = (Card) obj;
+        // if (card.isCriteriaSideUp()) {
+        // criteriaCardInHand = true;
+        // break;
+        // }
+        // }
+
+        // if (criteriaCardInHand) {
+        // player.sendMessage("Would you like to flip a criteria card to its veggie
+        // side? (y/n)");
+        // String flipChoice = player.receiveInput();
+        // if (flipChoice.equalsIgnoreCase("y")) {
+        // player.sendMessage("Enter the index of the card you'd like to flip (0, 1,
+        // ...):");
+        // String cardIndexInput = player.receiveInput();
+        // if (cardIndexInput.matches("\\d+")) {
+        // int cardIndex = Integer.parseInt(cardIndexInput);
+        // if (cardIndex < player.getHand().size() &&
+        // player.getHand().get(cardIndex).isCriteriaSideUp()) {
+        // player.getHand().get(cardIndex).flipCard(); // Flip the card to veggie side
+        // player.sendMessage("Card flipped to veggie side.");
+        // } else {
+        // player.sendMessage("Invalid card index. No card was flipped.");
+        // }
+        // }
+        // }
+        // }
     }
 
     private void takeVeggieCards(Player player, String action) throws IOException {

@@ -22,7 +22,7 @@ public class PointSalad {
 
                 // Set up players and piles for the game
                 ArrayList<Player> players = new ArrayList<>(server.getPlayers()); // Fetch players from server
-                ArrayList<Pile> piles = setupPiles(numberOfPlayers); // Create piles for the game
+                ArrayList<Pile> piles = setupPiles(numberOfPlayers + numberOfBots); // Create piles for the game
 
                 // Initialize the turn manager and start turns
                 TurnManager turnManager = new TurnManager(players, piles);

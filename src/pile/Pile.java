@@ -115,19 +115,34 @@ public class Pile {
         // players
         // Each player gets 6 cards of each veggie type
 
-        int cardsPerVeggie = nrPlayers / 2 * 6;
-
-        ArrayList<Card> deck = new ArrayList<>();
-        for (int i = 0; i < cardsPerVeggie; i++) {
-            deck.add(deckPepper.remove(0));
-            deck.add(deckLettuce.remove(0));
-            deck.add(deckCarrot.remove(0));
-            deck.add(deckCabbage.remove(0));
-            deck.add(deckOnion.remove(0));
-            deck.add(deckTomato.remove(0));
+        int totalPlayers = nrPlayers; // Include the host (server)
+        int removeCount = (6 - totalPlayers) * 3; // Number of cards to remove from each veggie deck
+        // Remove the specified number of cards from each veggie deck
+        for (int i = 0; i < removeCount; i++) {
+            if (!deckPepper.isEmpty())
+                deckPepper.remove(0);
+            if (!deckLettuce.isEmpty())
+                deckLettuce.remove(0);
+            if (!deckCarrot.isEmpty())
+                deckCarrot.remove(0);
+            if (!deckCabbage.isEmpty())
+                deckCabbage.remove(0);
+            if (!deckOnion.isEmpty())
+                deckOnion.remove(0);
+            if (!deckTomato.isEmpty())
+                deckTomato.remove(0);
         }
 
-        System.out.println("Main deck size after shuffling: " + deck.size());
+        // Now combine the remaining cards into a main deck
+        ArrayList<Card> deck = new ArrayList<>();
+        deck.addAll(deckPepper);
+        deck.addAll(deckLettuce);
+        deck.addAll(deckCarrot);
+        deck.addAll(deckCabbage);
+        deck.addAll(deckOnion);
+        deck.addAll(deckTomato);
+
+        System.out.println("Main deck size after before shuffling: " + deck.size());
         System.out.println("Pepper deck size: " + deckPepper.size());
         System.out.println("Lettuce deck size: " + deckLettuce.size());
         System.out.println("Carrot deck size: " + deckCarrot.size());
@@ -137,6 +152,8 @@ public class Pile {
 
         // Shuffle the combined deck and divide it into 3 piles
         shuffleDeck(deck);
+        System.out.println("Main deck size after shuffling: " + deck.size());
+
         ArrayList<Card> pile1 = new ArrayList<>();
         ArrayList<Card> pile2 = new ArrayList<>();
         ArrayList<Card> pile3 = new ArrayList<>();
@@ -149,13 +166,21 @@ public class Pile {
                 pile3.add(deck.get(i));
             }
         }
+        System.out.println("Pile 1 size: " + pile1.size());
+        System.out.println("Pile 2 size: " + pile2.size());
+        System.out.println("Pile 3 size: " + pile3.size());
 
         // Return the piles
         List<Pile> piles = new ArrayList<>();
         piles.add(new Pile(pile1));
         piles.add(new Pile(pile2));
         piles.add(new Pile(pile3));
+        // print the pile lengths
+        System.out.println("Pile 1: " + pile1.size());
+        System.out.println("Pile 2: " + pile2.size());
+        System.out.println("Pile 3: " + pile3.size());
         return piles;
+
     }
 
     // Shuffle deck helper method
