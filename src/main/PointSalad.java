@@ -31,11 +31,13 @@ public class PointSalad {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+            // TODO: remove server as player 0
         } else if (args.length > 0 && args[0].equals("client")) {
             // Start the client mode
             try {
                 String ipAddress = args[1]; // E.g., "127.0.0.1"
                 GameClient client = new GameClient(ipAddress, 2048);
+
                 client.start(); // Start interaction with the server
             } catch (Exception e) {
                 e.printStackTrace();

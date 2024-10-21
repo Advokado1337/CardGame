@@ -91,27 +91,15 @@ public class TurnManager {
             }
             checkAndRefillMarket();
             // Display the market and hand for both server and client
-            if (thisPlayer.getId() == 0) {
-                // Player 0 (server) sees the market directly
-                System.out.println("The market is:\n" + printMarket());
-                System.out.println("It's your turn! Your hand is:\n" +
-                        thisPlayer.displayHand());
-                // show other players hands
-                for (Player player : players) {
-                    if (player.getId() != 0) {
-                        System.out.println(player.displayHand());
-                    }
-                }
-            } else {
-                // Client player sees the market via sendMessage
-                thisPlayer.sendMessage("The market is:\n" + printMarket());
-                thisPlayer.sendMessage("It's your turn! Your hand is:\n" +
-                        thisPlayer.displayHand());
-                // show other players hands
-                for (Player player : players) {
-                    if (player.getId() != thisPlayer.getId()) {
-                        thisPlayer.sendMessage(player.displayHand());
-                    }
+
+            // Client player sees the market via sendMessage
+            thisPlayer.sendMessage("The market is:\n" + printMarket());
+            thisPlayer.sendMessage("It's your turn! Your hand is:\n" +
+                    thisPlayer.displayHand());
+            // show other players hands
+            for (Player player : players) {
+                if (player.getId() != thisPlayer.getId()) {
+                    thisPlayer.sendMessage(player.displayHand());
                 }
             }
 
@@ -201,63 +189,39 @@ public class TurnManager {
             return;
         }
 
-        if (player.getId() == 0) {
-            // Server player
-            Scanner scanner = new Scanner(System.in);
-            System.out.println("Do you want to flip a criteria card to its veggie side? (yes/no)");
-            String response = scanner.nextLine().trim().toLowerCase();
+        player.sendMessage("Do you want to flip a criteria card to its veggie side? (yes/no)");
+        String response = player.receiveInput().trim().toLowerCase();
 
-            if (response.equals("yes")) {
-                System.out.println("Your hand is:\n" + player.displayHand());
-                for (int i = 0; i < pointCards.size(); i++) {
-                    System.out.println("[" + i + "] " + pointCards.get(i));
-                }
-                System.out.println("Enter the index of the card you want to flip:");
-                int cardIndex = scanner.nextInt();
-                scanner.nextLine(); // Consume the newline
+        System.out.println("Client responded: " + response); // Debugging - Ensure input is received
 
-                if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
-                    pointCards.get(cardIndex).flipCard();
-                    System.out.println("Card flipped: " + pointCards.get(cardIndex));
-                } else {
-                    System.out.println("Invalid card index.");
-                }
+        if (response.equals("yes")) {
+            player.sendMessage("Your hand is:\n" + player.displayHand());
+            for (int i = 0; i < pointCards.size(); i++) {
+                player.sendMessage("[" + i + "] " + pointCards.get(i));
             }
-        } else {
-            player.sendMessage("Do you want to flip a criteria card to its veggie side? (yes/no)");
-            String response = player.receiveInput().trim().toLowerCase();
+            player.sendMessage("Enter the index of the card you want to flip:");
+            String cardIndexStr = player.receiveInput().trim();
+            int cardIndex = Integer.parseInt(cardIndexStr);
 
-            System.out.println("Client responded: " + response); // Debugging - Ensure input is received
+            System.out.println("Client chose card index: " + cardIndexStr); // Debugging - Ensure card index is
+                                                                            // received
 
-            if (response.equals("yes")) {
-                player.sendMessage("Your hand is:\n" + player.displayHand());
-                for (int i = 0; i < pointCards.size(); i++) {
-                    player.sendMessage("[" + i + "] " + pointCards.get(i));
-                }
-                player.sendMessage("Enter the index of the card you want to flip:");
-                String cardIndexStr = player.receiveInput().trim();
-                int cardIndex = Integer.parseInt(cardIndexStr);
+            if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
+                pointCards.get(cardIndex).flipCard();
+                player.sendMessage("Card flipped: " + pointCards.get(cardIndex));
 
-                System.out.println("Client chose card index: " + cardIndexStr); // Debugging - Ensure card index is
-                                                                                // received
-
-                if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
-                    pointCards.get(cardIndex).flipCard();
-                    player.sendMessage("Card flipped: " + pointCards.get(cardIndex));
-
-                    // Notify all players about the flip
-                    for (Player p : players) {
-                        if (p.getId() != player.getId()) {
-                            p.sendMessage("Player " + player.getId() + " has flipped card " + cardIndex
-                                    + " to its veggie side.");
-                        }
+                // Notify all players about the flip
+                for (Player p : players) {
+                    if (p.getId() != player.getId()) {
+                        p.sendMessage("Player " + player.getId() + " has flipped card " + cardIndex
+                                + " to its veggie side.");
                     }
-                } else {
-                    player.sendMessage("Invalid card index.");
                 }
             } else {
-                player.sendMessage("You chose not to flip a card.");
+                player.sendMessage("Invalid card index.");
             }
+        } else {
+            player.sendMessage("You chose not to flip a card.");
         }
     }
 
