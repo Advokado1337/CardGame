@@ -24,36 +24,47 @@ public class GameClient {
             String serverMessage = (String) inFromServer.readObject();
             System.out.println("Server: " + serverMessage);
 
-            // If the server is asking for an action, prompt the player and send the input
-            // back
-            // First action
+            // Handle player action prompt for pile or veggie selection
             if (serverMessage.contains("Choose a pile")) {
-                System.out.print("Enter your action (pile number or veggie card letters): ");
-                String playerAction = scanner.nextLine();
-
-                // Send the player action back to the server
+                String playerAction = getValidInput(scanner, "Enter your action (pile number or veggie card letters): ",
+                        "\\d|[A-Fa-f]{1,2}");
                 outToServer.writeObject(playerAction);
-
-                // Second action
-            } else if (serverMessage.contains("Do you want to flip a criteria card")) {
-                System.out.print("Enter your action (flip): ");
-                String playerAction = scanner.nextLine();
-
-                // Send the player action back to the server
+            }
+            // Handle flipping card prompt
+            else if (serverMessage.contains("Do you want to flip a criteria card")) {
+                String playerAction = getValidInput(scanner, "Enter your action (yes/no): ", "(?i)yes|no");
                 outToServer.writeObject(playerAction);
-            } else if (serverMessage.contains("Enter the index")) {
-                System.out.print("Enter the index (index): ");
-                String playerAction = scanner.nextLine();
-
-                // Send the player action back to the server
+            }
+            // Handle card index prompt
+            else if (serverMessage.contains("Enter the index")) {
+                String playerAction = getValidInput(scanner, "Enter the index (number): ", "\\d+");
                 outToServer.writeObject(playerAction);
-            } else if (serverMessage.contains("Final scores")) {
-                // close connectiosn
-                clientSocket.close();
+            }
+            // Handle "try again" or reprompt situations
+            else if (serverMessage.contains("Invalid input") || serverMessage.contains("Try again")) {
+                System.out.println("Invalid input. Please try again.");
+            }
+            // Handle game end condition
+            else if (serverMessage.contains("Final scores")) {
                 System.out.println(serverMessage);
+                clientSocket.close();
                 break;
             }
+        }
+    }
 
+    // Helper method to get valid input (no restructuring, just simplifying
+    // reprompt)
+    private String getValidInput(Scanner scanner, String prompt, String validPattern) {
+        String input;
+        while (true) {
+            System.out.print(prompt);
+            input = scanner.nextLine();
+            if (input.matches(validPattern)) {
+                return input;
+            } else {
+                System.out.println("Invalid input. Please try again.");
+            }
         }
     }
 }

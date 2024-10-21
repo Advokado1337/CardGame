@@ -6,11 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import card.Card;
 // TODO : Error handling for inputs
-// TODO : Vegetable input validation
-// TODO : flip card input validation
-// TODO : index input validation
 
 public class TurnManager {
     private ArrayList<Player> players;
@@ -162,19 +160,21 @@ public class TurnManager {
                 } else {
                     player.sendMessage("Invalid pile or pile is empty. Try again.");
                 }
-            } else {
+            } else if (action.matches("[A-Fa-f]{1,2}")) {
                 if (action.length() == 1 || action.length() == 2) {
                     takeVeggieCards(player, action);
                     validInput = true;
                 } else {
                     player.sendMessage("Invalid selection. You can only choose one or two veggie cards.");
                 }
+            } else {
+                player.sendMessage(
+                        "Invalid input. You can only choose a pile number or one/two veggie cards (A-F). Try again.");
             }
         }
     }
 
     private void promptFlipCard(Player player) throws IOException, ClassNotFoundException {
-
         List<Card> pointCards = new ArrayList<>();
         for (Card card : player.getHand()) {
             if (card.isCriteriaSideUp()) {
@@ -182,16 +182,7 @@ public class TurnManager {
             }
         }
 
-        // Check if the player has any criteria cards in hand
-        boolean hasCriteriaCard = false;
-        for (Card card : player.getHand()) {
-            if (card.isCriteriaSideUp()) {
-                hasCriteriaCard = true;
-                break;
-            }
-        }
-
-        if (!hasCriteriaCard) {
+        if (pointCards.isEmpty()) {
             player.sendMessage("You have no criteria cards to flip.");
             return;
         }
@@ -199,40 +190,44 @@ public class TurnManager {
         player.sendMessage("Do you want to flip a criteria card to its veggie side? (yes/no)");
         String response = player.receiveInput().trim().toLowerCase();
 
-        System.out.println("Client responded: " + response); // Debugging - Ensure input is received
-
         if (response.equals("yes")) {
             player.sendMessage("Your hand is:\n" + player.displayHand());
             for (int i = 0; i < pointCards.size(); i++) {
                 player.sendMessage("[" + i + "] " + pointCards.get(i));
             }
-            player.sendMessage("Enter the index of the card you want to flip:");
-            String cardIndexStr = player.receiveInput().trim();
-            int cardIndex = Integer.parseInt(cardIndexStr);
 
-            System.out.println("Client chose card index: " + cardIndexStr); // Debugging - Ensure card index is
-                                                                            // received
+            boolean validIndex = false;
+            while (!validIndex) {
+                player.sendMessage("Enter the index of the card you want to flip:");
+                String cardIndexStr = player.receiveInput().trim();
 
-            if (cardIndex >= 0 && cardIndex < player.getHand().size()) {
-                pointCards.get(cardIndex).flipCard();
-                player.sendMessage("Card flipped: " + pointCards.get(cardIndex));
+                try {
+                    int cardIndex = Integer.parseInt(cardIndexStr);
+                    if (cardIndex >= 0 && cardIndex < pointCards.size()) {
+                        pointCards.get(cardIndex).flipCard();
+                        player.sendMessage("Card flipped: " + pointCards.get(cardIndex));
 
-                // Notify all players about the flip
-                for (Player p : players) {
-                    if (p.getId() != player.getId()) {
-                        p.sendMessage("Player " + player.getId() + " has flipped card " + cardIndex
-                                + " to its veggie side.");
+                        // Notify all players about the flip
+                        for (Player p : players) {
+                            if (p.getId() != player.getId()) {
+                                p.sendMessage("Player " + player.getId() + " has flipped card " + cardIndex
+                                        + " to its veggie side.");
+                            }
+                        }
+                        validIndex = true;
+                    } else {
+                        player.sendMessage("Invalid card index. Please try again.");
                     }
+                } catch (NumberFormatException e) {
+                    player.sendMessage("Invalid input. Please enter a valid number.");
                 }
-            } else {
-                player.sendMessage("Invalid card index.");
             }
         } else {
             player.sendMessage("You chose not to flip a card.");
         }
     }
 
-    private void takeVeggieCards(Player player, String action) throws IOException {
+    private boolean takeVeggieCards(Player player, String action) throws IOException {
         int takenVeggies = 0;
 
         for (int charIndex = 0; charIndex < action.length(); charIndex++) {
@@ -256,7 +251,7 @@ public class TurnManager {
                 default:
                     player.sendMessage("Invalid pile selected. Please choose a valid pile (A-F).");
                     System.out.println("Invalid pile selected: " + c); // Debugging
-                    return; // Re-prompt the player
+                    return false; // Re-prompt the player
             }
 
             System.out.println("Selected pile index: " + pileIndex); // Debugging
@@ -275,9 +270,10 @@ public class TurnManager {
             } else { // Pile is empty or no more veggie cards
                 player.sendMessage("The selected pile or veggie card is empty. Try again.");
                 System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
-                return; // Re-prompt the player
+                return false; // Re-prompt the player
             }
         }
+        return true; // Return true if all selections were valid
     }
 
     private void handleBotTurn(Player bot) throws IOException, ClassNotFoundException {
