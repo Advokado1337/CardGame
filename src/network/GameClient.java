@@ -24,32 +24,55 @@ public class GameClient {
             String serverMessage = (String) inFromServer.readObject();
             System.out.println("Server: " + serverMessage);
 
-            // Handle player action prompt for pile or veggie selection
+            // If the server is asking for an action, prompt the player and send the input
+            // back
             if (serverMessage.contains("Choose a pile")) {
+                // Use helper method for input
                 String playerAction = getValidInput(scanner, "Enter your action (pile number or veggie card letters): ",
                         "\\d|[A-Fa-f]{1,2}");
                 outToServer.writeObject(playerAction);
-            }
-            // Handle flipping card prompt
-            else if (serverMessage.contains("Do you want to flip a criteria card")) {
-                String playerAction = getValidInput(scanner, "Enter your action (yes/no): ", "(?i)yes|no");
+
+                // Handle invalid selection case
+            } else if (serverMessage.contains("Invalid selection") || serverMessage.contains("Invalid pile")) {
+                System.out.println("Invalid selection! Please choose again.");
+                String playerAction = getValidInput(scanner, "Enter your action (pile number or veggie card letters): ",
+                        "\\d|[A-Fa-f]{1,2}");
                 outToServer.writeObject(playerAction);
-            }
-            // Handle card index prompt
-            else if (serverMessage.contains("Enter the index")) {
-                String playerAction = getValidInput(scanner, "Enter the index (number): ", "\\d+");
+
+                // Handle empty pile or veggie card
+            } else if (serverMessage.contains("The selected pile or veggie card is empty")) {
+                System.out
+                        .println("Invalid selection! The selected pile or veggie card is empty. Please choose again.");
+                String playerAction = getValidInput(scanner, "Enter your action (pile number or veggie card letters): ",
+                        "\\d|[A-Fa-f]{1,2}");
                 outToServer.writeObject(playerAction);
-            }
-            // Handle "try again" or reprompt situations
-            else if (serverMessage.contains("Invalid input") || serverMessage.contains("Try again")) {
-                System.out.println("Invalid input. Please try again.");
-            }
-            // Handle game end condition
-            else if (serverMessage.contains("Final scores")) {
+
+                // Second action (flip a criteria card)
+            } else if (serverMessage.contains("Do you want to flip a criteria card")) {
+                String playerAction = getValidInput(scanner, "Enter your action (flip: yes/no): ",
+                        "(?i)yes|no");
+                outToServer.writeObject(playerAction);
+
+                // Handle card flipping with index
+            } else if (serverMessage.contains("Enter the index")) {
+                String playerAction = getValidInput(scanner, "Enter the index (index): ",
+                        "\\d+");
+                outToServer.writeObject(playerAction);
+
+                // Handle end of game with final scores
+            } else if (serverMessage.contains("Final scores")) {
+                clientSocket.close(); // close connections
                 System.out.println(serverMessage);
-                clientSocket.close();
                 break;
+
+            } else if (serverMessage.contains("No point card available in this pile. Try again.")) {
+                // Prompt the player to enter a valid action again
+                String playerAction = getValidInput(scanner,
+                        "No point card available in this pile. Please choose another pile or veggie card: ",
+                        "\\d|[A-Fa-f]{1,2}");
+                outToServer.writeObject(playerAction);
             }
+
         }
     }
 

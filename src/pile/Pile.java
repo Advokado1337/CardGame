@@ -16,8 +16,9 @@ import java.util.Scanner;
 public class Pile {
     public List<Card> cards = new ArrayList<>();
     public Card[] veggieCards = new Card[2]; // Two visible veggie cards
-
+    // TODO Maybe pile less specific and more general
     // Constructor only focuses on its own cards
+
     public Pile(List<Card> cards) {
         this.cards = cards;
         if (cards.size() >= 2) {
@@ -62,6 +63,7 @@ public class Pile {
         return cards.isEmpty() && veggieCards[0] == null && veggieCards[1] == null;
     }
 
+    // TODO: Move to Main class
     // Static method to handle deck creation based on the number of players
     public static List<Pile> createPiles(int nrPlayers) {
         ArrayList<Card> deckPepper = new ArrayList<>();

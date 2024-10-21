@@ -1,4 +1,4 @@
-package game;
+package game.scoring;
 
 import card.Card;
 import java.util.List;

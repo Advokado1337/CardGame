@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.List;
 
 import card.Card;
-// TODO : Error handling for inputs
 
 public class TurnManager {
     private ArrayList<Player> players;
@@ -146,27 +145,28 @@ public class TurnManager {
                 continue;
             }
 
+            // Handle pile selection or veggie card selection
             if (action.matches("\\d")) {
                 int pileIndex = Integer.parseInt(action);
-                if (pileIndex < piles.size() && !piles.get(pileIndex).isEmpty()) {
-                    if (piles.get(pileIndex).getPointCard() == null) {
-                        player.sendMessage("Pile is empty. Try again.");
-                        continue;
-                    }
-                    player.addCardToHand(piles.get(pileIndex).buyPointCard());
-                    player.sendMessage("You took a point card from pile " + pileIndex);
-                    validInput = true;
 
+                // Check if the pile is valid and not empty
+                if (pileIndex < piles.size()) {
+                    if (piles.get(pileIndex).isEmpty()) {
+                        player.sendMessage("The selected pile is empty. Please choose a different pile.");
+                        continue; // Reprompt for input
+                    } else if (piles.get(pileIndex).getPointCard() == null) {
+                        player.sendMessage("No point card available in this pile. Try again.");
+                        continue; // Reprompt for input
+                    } else {
+                        player.addCardToHand(piles.get(pileIndex).buyPointCard());
+                        player.sendMessage("You took a point card from pile " + pileIndex);
+                        validInput = true;
+                    }
                 } else {
-                    player.sendMessage("Invalid pile or pile is empty. Try again.");
+                    player.sendMessage("Invalid pile number. Please try again.");
                 }
             } else if (action.matches("[A-Fa-f]{1,2}")) {
-                if (action.length() == 1 || action.length() == 2) {
-                    takeVeggieCards(player, action);
-                    validInput = true;
-                } else {
-                    player.sendMessage("Invalid selection. You can only choose one or two veggie cards.");
-                }
+                validInput = takeVeggieCards(player, action);
             } else {
                 player.sendMessage(
                         "Invalid input. You can only choose a pile number or one/two veggie cards (A-F). Try again.");
@@ -232,48 +232,57 @@ public class TurnManager {
 
         for (int charIndex = 0; charIndex < action.length(); charIndex++) {
             char c = action.charAt(charIndex);
-            int pileIndex;
+            int pileIndex = getPileIndex(c);
 
-            // Map A and D to pile 0, B and E to pile 1, C and F to pile 2
-            switch (Character.toUpperCase(c)) {
-                case 'A':
-                case 'D':
-                    pileIndex = 0;
-                    break;
-                case 'B':
-                case 'E':
-                    pileIndex = 1;
-                    break;
-                case 'C':
-                case 'F':
-                    pileIndex = 2;
-                    break;
-                default:
-                    player.sendMessage("Invalid pile selected. Please choose a valid pile (A-F).");
-                    System.out.println("Invalid pile selected: " + c); // Debugging
-                    return false; // Re-prompt the player
+            if (pileIndex == -1) {
+                player.sendMessage("Invalid pile selected. Please choose a valid pile (A-F).");
+                System.out.println("Invalid pile selected: " + c); // Debugging
+                return false; // Re-prompt the player
+            } else {
+
+                int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1; // Row 1 or Row 2
+                Pile selectedPile = piles.get(pileIndex); // Correctly map to the pile
+
+                if (selectedPile.getVeggieCard(veggieIndex) == null || takenVeggies > 2) {
+                    player.sendMessage("The selected pile or veggie card is empty. Try again."); // Inform the player
+                    System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+                    return false;
+                }
             }
 
-            System.out.println("Selected pile index: " + pileIndex); // Debugging
+        }
+
+        for (int charIndex = 0; charIndex < action.length(); charIndex++) {
+            char c = action.charAt(charIndex);
+            int pileIndex = getPileIndex(c);
 
             // Calculate the veggie index (A-C map to row 1, D-F to row 2)
             int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1; // Row 1 or Row 2
-            System.out.println("Selected veggie index: " + veggieIndex); // Debugging
 
             Pile selectedPile = piles.get(pileIndex); // Correctly map to the pile
-            System.out.println("Selected pile: " + selectedPile); // Debugging
 
-            if (selectedPile.getVeggieCard(veggieIndex) != null && takenVeggies < 2) {
-                System.out.println("Veggie card available in pile: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
-                player.addCardToHand(selectedPile.buyVeggieCard(veggieIndex));
-                takenVeggies++;
-            } else { // Pile is empty or no more veggie cards
-                player.sendMessage("The selected pile or veggie card is empty. Try again.");
-                System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
-                return false; // Re-prompt the player
-            }
+            System.out.println("Veggie card available in pile: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+            player.addCardToHand(selectedPile.buyVeggieCard(veggieIndex));
+            takenVeggies++;
+
         }
-        return true; // Return true if all selections were valid
+        return true;
+    }
+
+    private int getPileIndex(char c) {
+        switch (Character.toUpperCase(c)) {
+            case 'A':
+            case 'D':
+                return 0;
+            case 'B':
+            case 'E':
+                return 1;
+            case 'C':
+            case 'F':
+                return 2;
+            default:
+                return -1;
+        }
     }
 
     private void handleBotTurn(Player bot) throws IOException, ClassNotFoundException {
@@ -334,7 +343,7 @@ public class TurnManager {
     }
 
     // Old Market
-
+    // TODO: Move this to its own class
     public String printMarket() {
         StringBuilder pileString = new StringBuilder();
 

@@ -3,8 +3,9 @@ package player;
 import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList; // Import to handle card collections
-import game.PointSaladScoring;
+
 import card.Card; // Assuming Card class exists in game package
+import game.scoring.PointSaladScoring;
 
 public class Player {
     private int id;
