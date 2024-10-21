@@ -31,7 +31,6 @@ public class PointSalad {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            // TODO: remove server as player 0
         } else if (args.length > 0 && args[0].equals("client")) {
             // Start the client mode
             try {

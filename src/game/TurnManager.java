@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
-
 import card.Card;
+// TODO : Error handling for inputs
+// TODO : Vegetable input validation
+// TODO : flip card input validation
+// TODO : index input validation
 
 public class TurnManager {
     private ArrayList<Player> players;
@@ -77,7 +79,7 @@ public class TurnManager {
         // Client player sees the market via sendMessage
         for (Player player : players) {
             player.sendMessage("The market is:\n" + printMarket());
-            // player.sendMessage("It's your turn! Your hand is:\n" +
+            // player.sendMessage("It's your turn!");
             // player.displayHand());
         }
         while (keepPlaying) {
@@ -85,7 +87,6 @@ public class TurnManager {
 
             // Check if the market still has available cards
             if (isMarketEmpty()) {
-                System.out.println("The market is empty. The game is over!");
                 keepPlaying = false;
                 break;
             }
@@ -103,6 +104,12 @@ public class TurnManager {
                 }
             }
 
+            // Inform other players that they are waiting for their turn
+            for (Player player : players) {
+                if (player != thisPlayer) {
+                    player.sendMessage("Waiting for your turn...");
+                }
+            }
             // Process player action
             if (!thisPlayer.isBot()) {
                 handlePlayerTurn(thisPlayer);
@@ -122,8 +129,8 @@ public class TurnManager {
 
         }
 
-        // Once the game ends, calculate and display final scores
         calculateAndDisplayScores();
+
     }
 
     private void handlePlayerTurn(Player player) throws IOException, ClassNotFoundException {
@@ -293,11 +300,37 @@ public class TurnManager {
         }
     }
 
-    private void calculateAndDisplayScores() {
+    private void calculateAndDisplayScores() throws IOException {
+        int highestScore = 0;
+        Player winner = null;
+        StringBuilder scoreMessage = new StringBuilder("Final Scores:\n");
+
         for (Player player : players) {
             int score = player.calculateScore();
-            System.out.println("Player " + player.getId() + "'s score: " + score);
+            scoreMessage.append("Player ").append(player.getId()).append("'s score: ").append(score).append("\n");
+
+            if (score > highestScore) {
+                highestScore = score;
+                winner = player;
+            }
         }
+
+        if (winner != null) {
+            scoreMessage.append("The winner is Player ").append(winner.getId()).append(" with a score of ")
+                    .append(highestScore).append("!\n");
+        } else {
+            scoreMessage.append("No winner could be determined.\n");
+        }
+
+        // Display the result on the server side
+        System.out.println(scoreMessage.toString());
+
+        // Broadcast the final result to all players
+        for (Player player : players) {
+            player.sendMessage(scoreMessage.toString());
+        }
+        // TODO close connections after game ends
+
     }
 
     private boolean isMarketEmpty() {

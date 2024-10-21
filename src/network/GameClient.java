@@ -16,6 +16,7 @@ public class GameClient {
     }
 
     public void start() throws IOException, ClassNotFoundException {
+        @SuppressWarnings("resource")
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
@@ -46,7 +47,10 @@ public class GameClient {
 
                 // Send the player action back to the server
                 outToServer.writeObject(playerAction);
-            } else if (serverMessage.contains("end")) {
+            } else if (serverMessage.contains("Final scores")) {
+                // close connectiosn
+                clientSocket.close();
+                System.out.println(serverMessage);
                 break;
             }
 

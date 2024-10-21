@@ -30,11 +30,6 @@ public class GameServer {
             throw new IllegalArgumentException("Too many players. Maximum is 6.");
         }
 
-        // // Add server as the first player (Player 0)
-        // players.add(new Player(0, false, null, null, null)); // The server is Player
-        // 0
-        // System.out.println("Server added as Player 0.");
-
         // Add bots
         for (int i = 0; i < numberOfBots; i++) {
             System.out.println("Adding bot player " + i);
@@ -48,7 +43,6 @@ public class GameServer {
             System.out.println("Client " + i + " connected.");
             ObjectInputStream inFromClient = new ObjectInputStream(connectionSocket.getInputStream());
             ObjectOutputStream outToClient = new ObjectOutputStream(connectionSocket.getOutputStream());
-            // TODO Player is handled in the game server class
             Player player = new Player(i + numberOfBots, false, connectionSocket, inFromClient, outToClient);
             players.add(player);
             System.out.println("Connected to player " + i);
