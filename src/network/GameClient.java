@@ -2,6 +2,7 @@ package network;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 public class GameClient {
@@ -16,12 +17,18 @@ public class GameClient {
     }
 
     public void start() throws IOException, ClassNotFoundException {
-        @SuppressWarnings("resource")
+        @SuppressWarnings("test")
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
             // Read message from the server
-            String serverMessage = (String) inFromServer.readObject();
+            String serverMessage;
+            try {
+                serverMessage = (String) inFromServer.readObject();
+            } catch (SocketException e) {
+                break;
+            }
+
             System.out.println("Server: " + serverMessage);
 
             // If the server is asking for an action, prompt the player and send the input
