@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.List;
 
 import card.Card;
+import game.scoring.PointSaladScoring;
+import game.scoring.Scoring;
 
 public class TurnManager {
     private ArrayList<Player> players;
@@ -305,13 +307,16 @@ public class TurnManager {
         }
     }
 
-    private void calculateAndDisplayScores() throws IOException {
+    // Method to handle scoring at the end of the game
+    public void calculateAndDisplayScores() throws IOException {
+        Scoring scoring = new PointSaladScoring(); // Create an instance of PointSaladScoring
+
         int highestScore = 0;
         Player winner = null;
         StringBuilder scoreMessage = new StringBuilder("Final Scores:\n");
 
         for (Player player : players) {
-            int score = player.calculateScore();
+            int score = scoring.calculateScore(player.getHand(), players, player); // Pass hand and player list
             scoreMessage.append("Player ").append(player.getId()).append("'s score: ").append(score).append("\n");
 
             if (score > highestScore) {
@@ -327,14 +332,11 @@ public class TurnManager {
             scoreMessage.append("No winner could be determined.\n");
         }
 
-        // Display the result on the server side
         System.out.println(scoreMessage.toString());
 
-        // Broadcast the final result to all players
         for (Player player : players) {
             player.sendMessage(scoreMessage.toString());
         }
-
     }
 
     private boolean isMarketEmpty() {

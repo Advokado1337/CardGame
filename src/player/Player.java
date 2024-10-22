@@ -5,7 +5,6 @@ import java.net.Socket;
 import java.util.ArrayList; // Import to handle card collections
 
 import card.Card; // Assuming Card class exists in game package
-import game.scoring.PointSaladScoring;
 
 public class Player {
     private int id;
@@ -95,10 +94,11 @@ public class Player {
         return handDisplay.toString();
     }
 
-    // Calculate and return the player's score
-    public int calculateScore() {
-        PointSaladScoring scoring = new PointSaladScoring();
-        return scoring.calculateScore(this.hand); // Pass the player's hand to the scoring logic
-    }
+    // // Calculate and return the player's score
+    // public int calculateScore() {
+    // PointSaladScoring scoring = new PointSaladScoring();
+    // return scoring.calculateScore(this.hand); // Pass the player's hand to the
+    // scoring logic
+    // }
 
 }

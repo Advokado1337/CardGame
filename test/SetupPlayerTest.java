@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-public class SetupPlayerTest {
+public class SetupPlayerTest { // REQ ID 1 - Between 2 and 6 players can play the game
 
     @Test
     public void testValidatePlayerCountWithInvalidNumber() {
