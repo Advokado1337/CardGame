@@ -21,14 +21,7 @@ public class GameServer {
 
     private void setupPlayers(int numberPlayers, int numberOfBots) throws IOException {
         System.out.println("Setting up " + numberPlayers + " players and " + numberOfBots + " bots.");
-        if (numberPlayers + numberOfBots < 2) {
-            System.out.println("Not enough players to start the game.");
-            throw new IllegalArgumentException("Not enough players to start the game.");
-        }
-        if (numberPlayers + numberOfBots > 6) {
-            System.out.println("Too many players. Maximum is 6.");
-            throw new IllegalArgumentException("Too many players. Maximum is 6.");
-        }
+        validatePlayerCount(numberPlayers, numberOfBots);
 
         // Add bots
         for (int i = 0; i < numberOfBots; i++) {
@@ -47,6 +40,17 @@ public class GameServer {
             players.add(player);
             System.out.println("Connected to player " + i);
             outToClient.writeObject("Connected as player " + i);
+        }
+    }
+
+    public static void validatePlayerCount(int numberPlayers, int numberOfBots) {
+        if (numberPlayers + numberOfBots < 2) {
+            System.out.println("Not enough players to start the game.");
+            throw new IllegalArgumentException("Not enough players to start the game.");
+        }
+        if (numberPlayers + numberOfBots > 6) {
+            System.out.println("Too many players. Maximum is 6.");
+            throw new IllegalArgumentException("Too many players. Maximum is 6.");
         }
     }
 
