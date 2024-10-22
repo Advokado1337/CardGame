@@ -2,7 +2,7 @@ package card;
 
 public class PointSaladCard extends Card {
 
-    public enum CardType { // Perhaps Useless?
+    public enum CardType {
         VEGETABLE,
         POINT
     }
@@ -30,7 +30,7 @@ public class PointSaladCard extends Card {
 
     @Override
     public String getCardType() {
-        return cardType == CardType.POINT ? "POINT" : vegetable.toString(); // Vegetable name if flipped
+        return cardType == CardType.POINT ? "POINT" : vegetable.toString();
     }
 
     public Vegetable getVegetable() {

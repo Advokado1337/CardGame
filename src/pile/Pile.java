@@ -7,9 +7,8 @@ import java.util.List;
 
 public class Pile {
     public List<Card> cards = new ArrayList<>();
-    public Card[] activeCards = new Card[2]; // Two visible active cards (formerly veggie cards)
+    public Card[] activeCards = new Card[2]; // Two visible active cards
 
-    // Constructor focuses on its own cards
     public Pile(List<Card> cards) {
         this.cards = cards;
         if (cards.size() >= 2) {
@@ -44,7 +43,7 @@ public class Pile {
             activeCards[index] = cards.remove(0);
             activeCards[index].flipCard();
         } else {
-            activeCards[index] = null; // No more active cards available
+            activeCards[index] = null;
         }
         return boughtCard;
     }

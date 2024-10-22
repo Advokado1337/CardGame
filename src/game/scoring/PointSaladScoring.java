@@ -5,7 +5,7 @@ import card.PointSaladCard;
 import player.Player;
 import java.util.List;
 
-public class PointSaladScoring implements Scoring {
+public class PointSaladScoring implements IScoring {
 
     @Override
     public int calculateScore(List<Card> hand, List<Player> players, Player currentPlayer) {

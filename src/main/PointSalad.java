@@ -26,10 +26,10 @@ public class PointSalad {
     public static void main(String[] args) {
 
         if (args.length > 0 && args[0].equals("server")) {
-            // Start the server mode
+
             try {
-                int numberOfPlayers = Integer.parseInt(args[1]); // E.g., 2 players
-                int numberOfBots = Integer.parseInt(args[2]); // E.g., 0 bots
+                int numberOfPlayers = Integer.parseInt(args[1]);
+                int numberOfBots = Integer.parseInt(args[2]);
                 GameServer server = new GameServer(2048, numberOfPlayers, numberOfBots);
 
                 // Set up players and piles for the game
@@ -46,15 +46,15 @@ public class PointSalad {
         } else if (args.length > 0 && args[0].equals("client")) {
             // Start the client mode
             try {
-                String ipAddress = args[1]; // E.g., "127.0.0.1"
+                String ipAddress = args[1];
                 GameClient client = new PointSaladGameClient(ipAddress, 2048);
 
-                client.start(); // Start interaction with the server
+                client.start();
             } catch (Exception e) {
                 e.printStackTrace();
             }
         } else {
-            // Invalid or no arguments
+
             System.out.println("Invalid arguments. Use 'server [numberPlayers] [numberBots]' or 'client [ipAddress]'.");
         }
     }
@@ -100,7 +100,6 @@ public class PointSalad {
             e.printStackTrace();
         }
 
-        // Shuffle each deck
         shuffleDeck(deckPepper);
         shuffleDeck(deckLettuce);
         shuffleDeck(deckCarrot);

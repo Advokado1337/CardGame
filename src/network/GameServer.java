@@ -61,7 +61,6 @@ public class GameServer {
     public void startGame() throws IOException, ClassNotFoundException {
         System.out.println("Game started!");
 
-        // The server (Player 0) will play first, followed by other players
         for (Player player : players) {
             if (!player.isBot()) {
                 System.out.println("Sending turn message to player " + player.getId());
@@ -70,8 +69,7 @@ public class GameServer {
                 System.out.println("Player " + player.getId() + " says: " + response);
             } else {
                 System.out.println("Player " + player.getId() + " is a bot.");
-                String botAction = player.performBotAction();
-                System.out.println(botAction);
+
             }
         }
     }

@@ -9,23 +9,22 @@ import java.util.List;
 
 import card.Card;
 import game.scoring.PointSaladScoring;
-import game.scoring.Scoring;
+import game.scoring.IScoring;
 
 public class TurnManager {
     private ArrayList<Player> players;
-    private List<Pile> piles; // Use piles directly instead of Market
+    private List<Pile> piles;
     private int currentPlayer;
 
     public TurnManager(ArrayList<Player> players, ArrayList<Pile> piles) {
         this.players = players;
-        this.piles = piles; // Use piles directly
-        this.currentPlayer = 0; // Start with player 0
+        this.piles = piles;
+        this.currentPlayer = 0;
 
         Collections.shuffle(this.players);
         System.out.println("Players shuffled. Random start player is Player " + this.players.get(0).getId());
     }
 
-    // Find the biggest pile (move this logic from Pile)
     public Pile getBiggestPileExcluding(Pile excludePile) {
         int biggestSize = 0;
         Pile biggestPile = null;
@@ -41,30 +40,17 @@ public class TurnManager {
 
     public void redistributeVeggieCards(Pile emptyPile, int veggieIndex) {
         Pile biggestPile = getBiggestPileExcluding(emptyPile);
-        // > 0 to handle last card in pile for redistribution
         if (biggestPile != null && biggestPile.cards.size() > 0) {
-            // Logging which pile and from where the card is coming
-            System.out.println("Before redistribution: Biggest Pile Size = " + biggestPile.cards.size());
-            System.out.println("Taking card from the bottom of Pile " + piles.indexOf(biggestPile) + ": "
-                    + biggestPile.cards.get(biggestPile.cards.size() - 1));
 
-            // Draw the card from the bottom of the biggest pile for the veggie slot
             emptyPile.activeCards[veggieIndex] = biggestPile.cards.remove(biggestPile.cards.size() - 1);
-            emptyPile.activeCards[veggieIndex].flipCard(); // Make sure it’s flipped to veggie side
+            emptyPile.activeCards[veggieIndex].flipCard();
 
-            // Log redistribution action
-            System.out.println(
-                    "Redistributed a veggie card to Pile " + piles.indexOf(emptyPile) + " at slot " + veggieIndex);
-            System.out.println("After redistribution: Biggest Pile Size = " + biggestPile.cards.size());
-        } else {
-            System.out.println("No more veggie cards available for redistribution.");
         }
     }
 
     // This method ensures the market is filled before every player's turn
     private void checkAndRefillMarket() {
         for (Pile pile : piles) {
-            // Check each veggie slot (index 0 and 1) and refill if empty
             for (int veggieIndex = 0; veggieIndex < pile.activeCards.length; veggieIndex++) {
                 if (pile.getActiveCard(veggieIndex) == null) {
                     redistributeVeggieCards(pile, veggieIndex);
@@ -75,11 +61,9 @@ public class TurnManager {
 
     public void startTurns() throws IOException, ClassNotFoundException {
         boolean keepPlaying = true;
-        // Client player sees the market via sendMessage
         for (Player player : players) {
             player.sendMessage("The market is:\n" + printMarket());
-            // player.sendMessage("It's your turn!");
-            // player.displayHand());
+
         }
         while (keepPlaying) {
             Player thisPlayer = players.get(currentPlayer);
@@ -90,9 +74,7 @@ public class TurnManager {
                 break;
             }
             checkAndRefillMarket();
-            // Display the market and hand for both server and client
 
-            // Client player sees the market via sendMessage
             thisPlayer.sendMessage("The market is:\n" + printMarket());
             thisPlayer.sendMessage("It's your turn! Your hand is:\n" +
                     thisPlayer.displayHand());
@@ -109,14 +91,12 @@ public class TurnManager {
                     player.sendMessage("Waiting for your turn...");
                 }
             }
-            // Process player action
             if (!thisPlayer.isBot()) {
                 handlePlayerTurn(thisPlayer);
             } else {
                 handleBotTurn(thisPlayer);
             }
 
-            // Prompt the player to flip a card
             if (!thisPlayer.isBot()) {
                 promptFlipCard(thisPlayer);
             }
@@ -238,16 +218,16 @@ public class TurnManager {
 
             if (pileIndex == -1) {
                 player.sendMessage("Invalid pile selected. Please choose a valid pile (A-F).");
-                System.out.println("Invalid pile selected: " + c); // Debugging
-                return false; // Re-prompt the player
+                System.out.println("Invalid pile selected: " + c);
+                return false;
             } else {
 
-                int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1; // Row 1 or Row 2
-                Pile selectedPile = piles.get(pileIndex); // Correctly map to the pile
+                int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1;
+                Pile selectedPile = piles.get(pileIndex);
 
                 if (selectedPile.getActiveCard(veggieIndex) == null || takenVeggies > 2) {
-                    player.sendMessage("The selected pile or veggie card is empty. Try again."); // Inform the player
-                    System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+                    player.sendMessage("The selected pile or veggie card is empty. Try again.");
+                    System.out.println("Pile or veggie card empty: " + pileIndex + ", veggie index: " + veggieIndex);
                     return false;
                 }
             }
@@ -259,11 +239,11 @@ public class TurnManager {
             int pileIndex = getPileIndex(c);
 
             // Calculate the veggie index (A-C map to row 1, D-F to row 2)
-            int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1; // Row 1 or Row 2
+            int veggieIndex = (Character.toUpperCase(c) < 'D') ? 0 : 1;
 
             Pile selectedPile = piles.get(pileIndex); // Correctly map to the pile
 
-            System.out.println("Veggie card available in pile: " + pileIndex + ", veggie index: " + veggieIndex); // Debugging
+            System.out.println("Veggie card available in pile: " + pileIndex + ", veggie index: " + veggieIndex);
             player.addCardToHand(selectedPile.buyActiveCard(veggieIndex));
             takenVeggies++;
 
@@ -289,9 +269,7 @@ public class TurnManager {
 
     private void handleBotTurn(Player bot) throws IOException, ClassNotFoundException {
         System.out.println("Handling bot turn for Player " + bot.getId());
-        // Bot randomly selects a point or veggie card
         if (Math.random() > 0.5) {
-            // Bot takes a point card
             for (int i = 0; i < piles.size(); i++) {
                 if (!piles.get(i).isEmpty()) {
                     Card pointCard = piles.get(i).buySpecialCard();
@@ -302,21 +280,20 @@ public class TurnManager {
                 }
             }
         } else {
-            // Bot takes two veggie cards
             takeVeggieCards(bot, "AB");
         }
     }
 
     // Method to handle scoring at the end of the game
     public void calculateAndDisplayScores() throws IOException {
-        Scoring scoring = new PointSaladScoring(); // Create an instance of PointSaladScoring
+        IScoring scoring = new PointSaladScoring();
 
         int highestScore = 0;
         Player winner = null;
         StringBuilder scoreMessage = new StringBuilder("Final Scores:\n");
 
         for (Player player : players) {
-            int score = scoring.calculateScore(player.getHand(), players, player); // Pass hand and player list
+            int score = scoring.calculateScore(player.getHand(), players, player);
             scoreMessage.append("Player ").append(player.getId()).append("'s score: ").append(score).append("\n");
 
             if (score > highestScore) {
@@ -343,12 +320,9 @@ public class TurnManager {
         return piles.stream().allMatch(Pile::isEmpty);
     }
 
-    // Old Market
-
     public String printMarket() {
         StringBuilder pileString = new StringBuilder();
 
-        // Format for Point Cards
         pileString.append("Point Cards:\t");
         for (int p = 0; p < piles.size(); p++) {
             if (piles.get(p).getSpecialCard() == null) {
