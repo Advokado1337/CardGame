@@ -2,7 +2,7 @@ package main;
 
 import network.GameClient;
 import network.GameServer;
-// import game.Market;
+import network.PointSaladGameClient;
 import game.TurnManager;
 import pile.Pile;
 import player.Player;
@@ -47,7 +47,7 @@ public class PointSalad {
             // Start the client mode
             try {
                 String ipAddress = args[1]; // E.g., "127.0.0.1"
-                GameClient client = new GameClient(ipAddress, 2048);
+                GameClient client = new PointSaladGameClient(ipAddress, 2048);
 
                 client.start(); // Start interaction with the server
             } catch (Exception e) {

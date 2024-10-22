@@ -46,6 +46,4 @@ public class PointSaladCard extends Card {
         }
     }
 
-    // Trying new thing
-
 }
